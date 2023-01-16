@@ -1,0 +1,14 @@
+# IDEs
+.idea/
+*.iml
+.classpath
+.project
+
+# Gradle
+.gradle/
+build/
+gradle.properties
+
+# Project #
+data/
+.env
