@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build and deploy
 
 on:
   release:
@@ -28,3 +28,18 @@ jobs:
         run: |
           docker build -t cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG .
           docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy Serverless Container
+        id: deploy-sls-container
+        uses: yc-actions/yc-sls-container-deploy@v2
+        with:
+          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+          container-name: discord-pidor
+          folder-id: b1gu4v0ojkknqdgrlfeh
+          revision-service-account-id: ${{ secrets.YC_SLS_SERVICE_ACCOUNT_ID}}
+          revision-cores: 1
+          revision-memory: 256Mb
+          revision-core-fraction: 100
+          revision-concurrency: 8
+          revision-image-url: cr.yandex/crpqkfge3j893376i8t4/discord-pidor:${{ github.sha }}
+          revision-execution-timeout: 10
