@@ -5,13 +5,16 @@ import com.gitolite.pidorKt.extensions.pidors.model.Guild
 import com.gitolite.pidorKt.extensions.pidors.model.Guilds
 import com.gitolite.pidorKt.extensions.pidors.model.Pidor
 import com.gitolite.pidorKt.extensions.pidors.model.Pidors
+import com.kotlindiscord.kord.extensions.checks.anyGuild
+import com.kotlindiscord.kord.extensions.commands.Arguments
+import com.kotlindiscord.kord.extensions.commands.application.slash.PublicSlashCommandContext
+import com.kotlindiscord.kord.extensions.components.forms.ModalForm
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.types.respondEphemeral
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Member
-import dev.kord.core.kordLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.count
@@ -34,14 +37,18 @@ class PidorCommand : Extension() {
     override val name: String
         get() = "extensions.pidors.command.pidor"
 
-    override suspend fun setup() {
-        val exec: Cache<Snowflake, Boolean> by inject(named("exec"))
-        val db: Database by inject()
-        val messages: MessagesDto by inject()
+    private val exec: Cache<Snowflake, Boolean> by inject(named("exec"))
+    private val db: Database by inject()
+    private val messagesDto: MessagesDto by inject()
 
+    override suspend fun setup() {
         publicSlashCommand {
             name = "pidor"
             description = "Узнать, кто же он?"
+
+            check {
+                anyGuild()
+            }
 
             action {
                 if (exec.get(guild!!.id) !== null) {
@@ -59,46 +66,61 @@ class PidorCommand : Extension() {
                         it.roleIds.contains(Snowflake(guildConfig.role))
                     }
 
-                    kordLogger.debug { guildConfig.role }
+                    val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
 
-                    val pidorObjRes = transaction(db) {
-                        Pidor.find {
-                            (Pidors.guild eq guildConfig.id).and(Pidors.chosenAt eq CurrentDate)
-                        }.firstOrNull()
-                    }
+                    when {
+                        pidorObjRes === null -> {
+                            pidor = members.withIndex().first {
+                                it.index == (0 until members.count()).random()
+                            }.value
 
-                    if (pidorObjRes === null) {
-                        pidor = members.withIndex().first {
-                            it.index == (0 until members.count()).random()
-                        }.value
+                            createPidorForGuild(pidor, guildConfig)
 
-                        pidorObj = transaction(db) {
-                            Pidor.new {
-                                chosenAt = LocalDate.now()
-                                user = pidor.id.value.toLong()
-                                guild = guildConfig
-                            }
+                            playScenario(pidor)
                         }
 
-                        val scenario = messages.scenarios.random()
+                        else -> {
+                            pidorObj = pidorObjRes
+                            pidor = members.first { it.id.value.toLong() == pidorObj.user }
 
-                        scenario.messages.forEach {
                             respond {
-                                content = it.replace("#user", pidor.mention)
+                                content = messagesDto.responses.random().replace("#user", pidor.mention)
                             }
-                            delay((1L..MAX_DELAY).random().toDuration(DurationUnit.SECONDS).inWholeMilliseconds)
-                        }
-                    } else {
-                        pidorObj = pidorObjRes
-                        pidor = members.first { it.id.value.toLong() == pidorObj.user }
-
-                        respond {
-                            content = messages.responses.random().replace("#user", pidor.mention)
                         }
                     }
 
                     exec.invalidate(guild!!.id)
                 }
+            }
+        }
+    }
+
+    private fun findExistingPidorOrNull(guildConfig: Guild): Pidor? {
+        val pidorObjRes: Pidor? = transaction(db) {
+            Pidor.find {
+                (Pidors.guild eq guildConfig.id).and(Pidors.chosenAt eq CurrentDate)
+            }.firstOrNull()
+        }
+        return pidorObjRes
+    }
+
+    private suspend fun PublicSlashCommandContext<Arguments, ModalForm>.playScenario(
+        pidor: Member
+    ) {
+        messagesDto.scenarios.random().messages.forEach {
+            respond {
+                content = it.replace("#user", pidor.mention)
+            }
+            delay((1L..MAX_DELAY).random().toDuration(DurationUnit.SECONDS).inWholeMilliseconds)
+        }
+    }
+
+    private fun createPidorForGuild(member: Member, guildObject: Guild): Pidor {
+        return transaction(db) {
+            Pidor.new {
+                chosenAt = LocalDate.now()
+                user = member.id.value.toLong()
+                guild = guildObject
             }
         }
     }

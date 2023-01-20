@@ -5,7 +5,7 @@ import java.util.*
 
 group = "com.gitolite"
 version = "1.0.0"
-description = "DiscordKt starter template"
+description = "Pidor Bot"
 
 plugins {
     application

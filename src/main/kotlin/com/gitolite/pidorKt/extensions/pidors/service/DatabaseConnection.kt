@@ -14,7 +14,7 @@ class DatabaseConnection : Extension() {
         get() = "extensions.pidors.service.databaseConnection"
 
     override suspend fun setup() {
-        val dbConnString = "${System.getenv("DB_URL").dropLastWhile { it == '/' }}/${System.getenv("DB_NAME")}"
+        val dbConnString = System.getenv("DB_URL")
         kordLogger.debug { "org.postgresql.Driver" }
         kordLogger.debug { System.getenv("DB_DRIVER").toString() }
         val db: Database = Database.connect(

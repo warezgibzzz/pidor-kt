@@ -2,6 +2,7 @@ package com.gitolite.pidorKt.extensions.pidors.command
 
 import com.gitolite.pidorKt.extensions.pidors.model.Guild
 import com.gitolite.pidorKt.extensions.pidors.model.Guilds
+import com.kotlindiscord.kord.extensions.checks.anyGuild
 import com.kotlindiscord.kord.extensions.checks.hasPermission
 import com.kotlindiscord.kord.extensions.commands.Arguments
 import com.kotlindiscord.kord.extensions.commands.application.slash.publicSubCommand
@@ -10,7 +11,6 @@ import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
 import dev.kord.common.entity.Permission
-import dev.kord.core.kordLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.component.inject
@@ -27,9 +27,9 @@ class SetupCommand : Extension() {
             val db: Database by inject()
 
             check {
+                anyGuild()
                 failIf {
-                    event.interaction.user.isBot
-                    hasPermission(Permission.ManageGuild).equals(true)
+                    hasPermission(Permission.ManageGuild).equals(false)
                 }
             }
 
@@ -38,8 +38,6 @@ class SetupCommand : Extension() {
                 description = "Выбрать роль"
 
                 action {
-                    kordLogger.debug { arguments.targetRole.name }
-
                     transaction(db) {
                         val requestedGuild: Guild
                         val requesterGuildRes = Guild.find {
