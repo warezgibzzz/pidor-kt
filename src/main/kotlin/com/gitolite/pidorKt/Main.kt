@@ -29,6 +29,7 @@ suspend fun main() {
 
         intents {
             +Intent.GuildMembers
+            +Intent.GuildMessages
         }
 
         presence {

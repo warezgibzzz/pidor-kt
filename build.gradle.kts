@@ -54,6 +54,12 @@ dependencies {
     implementation(libs.jdbc.driver.postgresql)
     implementation(libs.jdbc.driver.postgresqlng)
 
+    // Web
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.statuspages)
+    implementation(libs.ktor.server.headers)
+
     // Util
     implementation(libs.cache4k)
 }

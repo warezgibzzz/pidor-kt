@@ -13,6 +13,7 @@ cache4k = "0.9.0"
 exposed = "0.40.1"
 jdbc-postgresql = "42.2.2"
 jdbc-postgresql-ng = "0.8.3"
+ktor = "2.1.3"
 
 [libraries]
 detekt = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -31,3 +32,7 @@ jetbrains-exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", versio
 jetbrains-exposed-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 jdbc-driver-postgresql = { module = "org.postgresql:postgresql", version.ref = "jdbc-postgresql" }
 jdbc-driver-postgresqlng = { module = "com.impossibl.pgjdbc-ng:pgjdbc-ng", version.ref = "jdbc-postgresql-ng" }
+ktor-server-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-server-statuspages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
+ktor-server-headers = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }

@@ -1,4 +1,4 @@
-FROM gradle:7.6-jdk16 AS build
+FROM gradle:7.6-jdk17-alpine AS build
 COPY --chown=gradle:gradle . /pidor
 WORKDIR /pidor
 RUN gradle shadowJar --no-daemon
