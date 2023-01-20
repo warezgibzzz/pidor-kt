@@ -1,0 +1,33 @@
+[versions]
+# Note: Plugin versions must be updated in the build.gradle.kts too
+detekt = "1.22.0"
+kotlin = "1.7.20"
+kotlin-serialization = "1.4.1"
+
+groovy = "3.0.8"
+kord-core = "0.8.0-M17"
+kord-extensions = "1.5.6-SNAPSHOT"
+logging = "2.1.21"
+logback = "1.2.5"
+cache4k = "0.9.0"
+exposed = "0.40.1"
+jdbc-postgresql = "42.2.2"
+jdbc-postgresql-ng = "0.8.3"
+
+[libraries]
+detekt = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+kord-core = { module = "dev.kord:kord-core", version.ref = "kord-core" }
+kord-extensions = { module = "com.kotlindiscord.kord.extensions:kord-extensions", version.ref = "kord-extensions" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
+kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlin" }
+kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logging = { module = "io.github.microutils:kotlin-logging", version.ref = "logging" }
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k"}
+jetbrains-exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+jetbrains-exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+jetbrains-exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+jetbrains-exposed-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+jdbc-driver-postgresql = { module = "org.postgresql:postgresql", version.ref = "jdbc-postgresql" }
+jdbc-driver-postgresqlng = { module = "com.impossibl.pgjdbc-ng:pgjdbc-ng", version.ref = "jdbc-postgresql-ng" }

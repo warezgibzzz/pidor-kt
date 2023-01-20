@@ -1,10 +1,11 @@
-FROM gradle:7.1-jdk16 AS build
-COPY --chown=gradle:gradle . /starter
-WORKDIR /starter
+FROM gradle:7.6-jdk16 AS build
+COPY --chown=gradle:gradle . /pidor
+WORKDIR /pidor
 RUN gradle shadowJar --no-daemon
 
-FROM openjdk:11.0.8-jre-slim
+FROM openjdk:16-alpine
 RUN mkdir /config/
-COPY --from=build /starter/build/libs/*.jar /
+RUN touch /config/config.json
+COPY --from=build /pidor/build/libs/*.jar /
 
 ENTRYPOINT ["java", "-jar", "/Bot.jar"]
