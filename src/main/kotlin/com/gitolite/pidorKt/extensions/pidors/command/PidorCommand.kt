@@ -140,7 +140,8 @@ class PidorCommand : Extension() {
                 val pidor = members.first { it.id.value.toLong() == pidorObjRes.user }
 
                 respond {
-                    content = messagesDto.responses.random().replace("#user", pidor.mention)
+                    val res = messagesDto.responses.random().replace("#user", pidor.mention)
+                    content = res
                 }
             }
         }
