@@ -34,5 +34,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Portainer to fetch latest image
-        run: curl -X POST --data '' ${{ secrets.PRODUCTION_WEBHOOK_URI }}
+        run: curl -X POST --data '' --insecure ${{ secrets.PRODUCTION_WEBHOOK_URI }}
     
