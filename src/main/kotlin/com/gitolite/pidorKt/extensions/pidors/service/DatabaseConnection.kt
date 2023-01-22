@@ -4,7 +4,6 @@ import com.gitolite.pidorKt.extensions.pidors.model.Guilds
 import com.gitolite.pidorKt.extensions.pidors.model.Pidors
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.loadModule
-import dev.kord.core.kordLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -15,8 +14,6 @@ class DatabaseConnection : Extension() {
 
     override suspend fun setup() {
         val dbConnString = System.getenv("DB_URL")
-        kordLogger.debug { "org.postgresql.Driver" }
-        kordLogger.debug { System.getenv("DB_DRIVER").toString() }
         val db: Database = Database.connect(
             dbConnString,
             driver = System.getenv("DB_DRIVER"),
@@ -25,9 +22,14 @@ class DatabaseConnection : Extension() {
         )
 
         transaction {
-            SchemaUtils.create(Guilds)
-            SchemaUtils.create(Pidors)
-            SchemaUtils.checkMappingConsistence()
+            SchemaUtils.createMissingTablesAndColumns(Guilds, Pidors)
+
+            SchemaUtils.statementsRequiredToActualizeScheme(Guilds, Pidors).forEach {
+                this.exec(it)
+            }
+            SchemaUtils.checkMappingConsistence(Guilds, Pidors).forEach {
+                this.exec(it)
+            }
         }
 
         loadModule {

@@ -5,15 +5,15 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.javatime.datetime
 
 object Pidors : IntIdTable() {
-    val chosenAt = date("chosenAt")
+    val chosenAt = datetime("chosenAt")
     val user: Column<Long> = long("user")
     val guild = reference("guild", Guilds)
 
     init {
-        uniqueIndex("guildChosen_IDX", chosenAt, guild)
+        uniqueIndex("guild_chosen_idx", chosenAt, guild)
     }
 }
 

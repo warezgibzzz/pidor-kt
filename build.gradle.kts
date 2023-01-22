@@ -62,6 +62,8 @@ dependencies {
 
     // Util
     implementation(libs.cache4k)
+
+    implementation(libs.kotlinx.datetime)
 }
 
 application {

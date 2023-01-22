@@ -1,5 +1,6 @@
 package com.gitolite.pidorKt.extensions.pidors.command
 
+import com.gitolite.pidorKt.MAX_DELAY
 import com.gitolite.pidorKt.extensions.pidors.dto.MessagesDto
 import com.gitolite.pidorKt.extensions.pidors.model.Guild
 import com.gitolite.pidorKt.extensions.pidors.model.Guilds
@@ -23,15 +24,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.withIndex
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.javatime.CurrentDate
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-
-const val MAX_DELAY = 5L
 
 class PidorCommand : Extension() {
     override val name: String
@@ -51,45 +51,83 @@ class PidorCommand : Extension() {
             }
 
             action {
-                if (exec.get(guild!!.id) !== null) {
-                    respondEphemeral { content = "Подожди мой сладкий ;)" }
-                } else {
-                    exec.put(guild!!.id, true)
-                    val pidorObj: Pidor
-                    val pidor: Member
-                    val guildConfig = transaction(db) {
-                        Guild.find {
-                            Guilds.discordId eq guild!!.id.value.toLong()
-                        }.first()
+                val guildConfig = currentGuild()
+
+                when {
+                    exec.get(guild!!.id) !== null -> {
+                        respondEphemeral { content = "Подожди мой сладкий ;)" }
                     }
-                    val members = guild!!.members.filter {
-                        it.roleIds.contains(Snowflake(guildConfig.role))
-                    }
+                    else -> {
+                        exec.put(guild!!.id, true)
+                        when (guildConfig.role) {
+                            null -> {
+                                respond {
+                                    content = "Роль розыгрыша не настроена"
+                                }
+                            }
+                            else -> {
+                                val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
 
-                    val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
-
-                    when {
-                        pidorObjRes === null -> {
-                            pidor = members.withIndex().first {
-                                it.index == (0 until members.count()).random()
-                            }.value
-
-                            createPidorForGuild(pidor, guildConfig)
-
-                            playScenario(pidor)
-                        }
-
-                        else -> {
-                            pidorObj = pidorObjRes
-                            pidor = members.first { it.id.value.toLong() == pidorObj.user }
-
-                            respond {
-                                content = messagesDto.responses.random().replace("#user", pidor.mention)
+                                execute(pidorObjRes, guildConfig)
                             }
                         }
-                    }
 
-                    exec.invalidate(guild!!.id)
+                        exec.invalidate(guild!!.id)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun PublicSlashCommandContext<Arguments, ModalForm>.currentGuild(): Guild {
+        val guildConfig: Guild
+        val guildRes = transaction(db) {
+            Guild.find {
+                Guilds.discordId eq guild!!.id.value.toLong()
+            }.firstOrNull()
+        }
+
+        when {
+            guildRes === null -> {
+                guildConfig = transaction(db) {
+                    Guild.new {
+                        discordId = guild!!.id.value.toLong()
+                    }
+                }
+            }
+
+            else -> {
+                guildConfig = guildRes
+            }
+        }
+
+        return guildConfig
+    }
+
+    private suspend fun PublicSlashCommandContext<Arguments, ModalForm>.execute(
+        pidorObjRes: Pidor?,
+        guildConfig: Guild
+    ) {
+        val members = guild!!.members.filter {
+            it.roleIds.contains(Snowflake(guildConfig.role!!))
+        }
+
+        when {
+            pidorObjRes === null -> {
+                val pidor = members.withIndex().first {
+                    it.index == (0 until members.count()).random()
+                }.value
+
+                createPidorForGuild(pidor, guildConfig)
+
+                playScenario(pidor)
+            }
+
+            else -> {
+                val pidor = members.first { it.id.value.toLong() == pidorObjRes.user }
+
+                respond {
+                    content = messagesDto.responses.random().replace("#user", pidor.mention)
                 }
             }
         }
@@ -98,7 +136,12 @@ class PidorCommand : Extension() {
     private fun findExistingPidorOrNull(guildConfig: Guild): Pidor? {
         val pidorObjRes: Pidor? = transaction(db) {
             Pidor.find {
-                (Pidors.guild eq guildConfig.id).and(Pidors.chosenAt eq CurrentDate)
+                (Pidors.guild eq guildConfig.id).and(
+                    Pidors.chosenAt.between(
+                        LocalDate.now(ZoneId.of(guildConfig.timeZone)).atStartOfDay(),
+                        LocalDateTime.now(ZoneId.of(guildConfig.timeZone))
+                    )
+                )
             }.firstOrNull()
         }
         return pidorObjRes
@@ -118,7 +161,7 @@ class PidorCommand : Extension() {
     private fun createPidorForGuild(member: Member, guildObject: Guild): Pidor {
         return transaction(db) {
             Pidor.new {
-                chosenAt = LocalDate.now()
+                chosenAt = LocalDateTime.now(ZoneId.of(guildObject.timeZone))
                 user = member.id.value.toLong()
                 guild = guildObject
             }
