@@ -36,12 +36,14 @@ suspend fun main() {
         }
 
         members {
+            fillPresences = true
             all()
         }
 
         intents {
             +Intent.GuildMembers
             +Intent.GuildMessages
+            +Intent.GuildPresences
         }
 
         presence {

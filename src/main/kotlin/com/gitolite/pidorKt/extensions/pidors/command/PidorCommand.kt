@@ -16,6 +16,7 @@ import com.kotlindiscord.kord.extensions.types.respond
 import com.kotlindiscord.kord.extensions.types.respondEphemeral
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Member
+import dev.kord.core.kordLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.count
@@ -52,6 +53,16 @@ class PidorCommand : Extension() {
 
             action {
                 val guildConfig = currentGuild()
+                val membersCount = guild!!.members.count()
+                val membersCountByRole = guild!!.members.filter { it.roleIds.contains(Snowflake(guildConfig.role!!)) }
+
+                kordLogger.info {
+                    "Members count: $membersCount"
+                }
+
+                kordLogger.info {
+                    "Members count: $membersCountByRole"
+                }
 
                 when {
                     exec.get(guild!!.id) !== null -> {
