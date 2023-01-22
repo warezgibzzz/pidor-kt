@@ -54,7 +54,9 @@ class PidorCommand : Extension() {
             action {
                 val guildConfig = currentGuild()
                 val membersCount = guild!!.members.count()
-                val membersCountByRole = guild!!.members.filter { it.roleIds.contains(Snowflake(guildConfig.role!!)) }
+                val membersCountByRole = guild!!.members.filter {
+                    it.roleIds.contains(Snowflake(guildConfig.role!!))
+                }.count()
 
                 kordLogger.info {
                     "Members count: $membersCount"
