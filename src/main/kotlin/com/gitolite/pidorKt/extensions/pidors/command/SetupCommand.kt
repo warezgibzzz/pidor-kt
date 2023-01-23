@@ -9,6 +9,7 @@ import com.kotlindiscord.kord.extensions.commands.application.slash.EphemeralSla
 import com.kotlindiscord.kord.extensions.commands.application.slash.EphemeralSlashCommandContext
 import com.kotlindiscord.kord.extensions.commands.application.slash.converters.impl.stringChoice
 import com.kotlindiscord.kord.extensions.commands.application.slash.ephemeralSubCommand
+import com.kotlindiscord.kord.extensions.commands.converters.impl.channel
 import com.kotlindiscord.kord.extensions.commands.converters.impl.role
 import com.kotlindiscord.kord.extensions.components.forms.ModalForm
 import com.kotlindiscord.kord.extensions.extensions.Extension
@@ -39,6 +40,7 @@ class SetupCommand : Extension() {
             }
 
             setupRoleCommand()
+            setupChannelCommand()
             setupTimezoneCommand()
         }
     }
@@ -57,6 +59,24 @@ class SetupCommand : Extension() {
 
                 respond {
                     content = "Роль ${arguments.targetRole.mention} была выбрана для участия в розыгрыше!"
+                }
+            }
+        }
+    }
+    private suspend fun EphemeralSlashCommand<Arguments, ModalForm>.setupChannelCommand() {
+        ephemeralSubCommand(::SetupChannelArgs) {
+            name = "channel"
+            description = "Выбрать канал розыгрыша"
+
+            action {
+                val requestedGuild: Guild = determineOrCreateGuild()
+
+                transaction(db) {
+                    requestedGuild.pidorChannel = arguments.targetChannel.id.value.toLong()
+                }
+
+                respond {
+                    content = "Розыгрыш был привязан в канал ${arguments.targetChannel.mention}"
                 }
             }
         }
@@ -110,6 +130,13 @@ class SetupCommand : Extension() {
         val targetRole by role {
             name = "role"
             description = "Какая роль может учавствовать в розыгрыше"
+        }
+    }
+
+    inner class SetupChannelArgs : Arguments() {
+        val targetChannel by channel {
+            name = "channel"
+            description = "К какому каналу привязан розыгрыш"
         }
     }
 

@@ -53,6 +53,30 @@ class PidorCommand : Extension() {
 
             action {
                 val guildConfig = currentGuild()
+
+                if (guildConfig.pidorChannel == null) {
+                    respond {
+                        content = "Нет привязки к каналу"
+                    }
+
+                    return@action
+                }
+
+                if (guildConfig.role == null) {
+                    respond {
+                        content = "Роль розыгрыша не настроена"
+                    }
+                    return@action
+                }
+
+                if (channel.id.value.toLong() != guildConfig.pidorChannel) {
+                    val boundChannel = guild!!.getChannel(Snowflake(guildConfig.pidorChannel!!))
+                    respond {
+                        content = "е в том канале пытаешься это сделать, мой сладкий. Тебе в ${boundChannel.mention} :)"
+                    }
+                    return@action
+                }
+
                 val membersCount = guild!!.members.count()
                 val membersCountByRole = guild!!.members.filter {
                     it.roleIds.contains(Snowflake(guildConfig.role!!))
@@ -72,18 +96,10 @@ class PidorCommand : Extension() {
                     }
                     else -> {
                         exec.put(guild!!.id, true)
-                        when (guildConfig.role) {
-                            null -> {
-                                respond {
-                                    content = "Роль розыгрыша не настроена"
-                                }
-                            }
-                            else -> {
-                                val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
 
-                                execute(pidorObjRes, guildConfig)
-                            }
-                        }
+                        val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
+
+                        execute(pidorObjRes, guildConfig)
 
                         exec.invalidate(guild!!.id)
                     }

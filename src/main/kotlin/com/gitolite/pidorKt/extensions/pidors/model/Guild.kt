@@ -11,6 +11,7 @@ object Guilds : LongIdTable() {
     val discordId: Column<Long> = long("discordId").uniqueIndex()
     val role: Column<Long?> = long("role").nullable()
     val timeZone: Column<String> = varchar("timeZone", VARCHAR_MAX).default("UTC")
+    val pidorChannel: Column<Long?> = long("pidorChannel").nullable()
 }
 
 class Guild(id: EntityID<Long>) : LongEntity(id) {
@@ -19,4 +20,5 @@ class Guild(id: EntityID<Long>) : LongEntity(id) {
     var discordId by Guilds.discordId
     var role by Guilds.role
     var timeZone by Guilds.timeZone
+    var pidorChannel by Guilds.pidorChannel
 }

@@ -33,6 +33,7 @@ suspend fun main() {
             add(::PidorCommand)
             add(::SetupCommand)
             add(::StatsCommand)
+//            add(::TranslateReactionHandler)
         }
 
         members {
@@ -44,6 +45,7 @@ suspend fun main() {
             +Intent.GuildMembers
             +Intent.GuildMessages
             +Intent.GuildPresences
+            +Intent.MessageContent
         }
 
         presence {
