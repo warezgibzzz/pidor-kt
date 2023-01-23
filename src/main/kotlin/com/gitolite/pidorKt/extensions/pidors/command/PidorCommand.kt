@@ -121,12 +121,12 @@ class PidorCommand : Extension() {
         pidorObjRes: Pidor?,
         guildConfig: Guild
     ) {
-        val members = guild!!.members.filter {
-            it.roleIds.contains(Snowflake(guildConfig.role!!))
-        }
-
         when {
             pidorObjRes === null -> {
+                val members = guild!!.members.filter {
+                    it.roleIds.contains(Snowflake(guildConfig.role!!))
+                }
+
                 val pidor = members.withIndex().first {
                     it.index == (0 until members.count()).random()
                 }.value
@@ -137,6 +137,12 @@ class PidorCommand : Extension() {
             }
 
             else -> {
+                val members = guild!!.members
+                val count = members.count()
+                kordLogger.debug {
+                    count
+                }
+
                 val pidor = members.first { it.id.value.toLong() == pidorObjRes.user }
 
                 respond {
