@@ -90,7 +90,7 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "16"
+    jvmTarget = "11"
     reports {
         html.required.set(true)
         xml.required.set(true)

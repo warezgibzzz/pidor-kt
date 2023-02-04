@@ -12,6 +12,7 @@ import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.datetime.Clock
 
 const val MAX_DELAY = 3L
 const val MAX_LEADERS = 10
@@ -33,7 +34,6 @@ suspend fun main() {
             add(::PidorCommand)
             add(::SetupCommand)
             add(::StatsCommand)
-//            add(::TranslateReactionHandler)
         }
 
         members {
@@ -49,8 +49,8 @@ suspend fun main() {
         }
 
         presence {
-            status = PresenceStatus.DoNotDisturb
-
+            status = PresenceStatus.Online
+            since = Clock.System.now()
             listening("Best gachibASS mixes")
         }
 

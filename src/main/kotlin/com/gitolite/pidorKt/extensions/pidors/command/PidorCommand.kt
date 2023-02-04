@@ -13,16 +13,14 @@ import com.kotlindiscord.kord.extensions.components.forms.ModalForm
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.extensions.publicSlashCommand
 import com.kotlindiscord.kord.extensions.types.respond
-import com.kotlindiscord.kord.extensions.types.respondEphemeral
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.Member
 import dev.kord.core.kordLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -42,6 +40,8 @@ class PidorCommand : Extension() {
     private val db: Database by inject()
     private val messagesDto: MessagesDto by inject()
 
+
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun setup() {
         publicSlashCommand {
             name = "pidor"
@@ -70,36 +70,31 @@ class PidorCommand : Extension() {
                 }
 
                 if (channel.id.value.toLong() != guildConfig.pidorChannel) {
-                    val boundChannel = guild!!.getChannel(Snowflake(guildConfig.pidorChannel!!))
+                    val boundChannel = guild!!.getChannel(Snowflake(guildConfig.pidorChannel!!)).mention
                     respond {
-                        content = "е в том канале пытаешься это сделать, мой сладкий. Тебе в ${boundChannel.mention} :)"
+                        content = "Не в том канале пытаешься это сделать, мой сладкий. Тебе в $boundChannel :)"
                     }
                     return@action
                 }
 
-                val membersCount = guild!!.members.count()
-                val membersCountByRole = guild!!.members.filter {
-                    it.roleIds.contains(Snowflake(guildConfig.role!!))
-                }.count()
-
-                kordLogger.info {
-                    "Members count: $membersCount"
-                }
-
-                kordLogger.info {
-                    "Members count: $membersCountByRole"
-                }
-
                 when {
                     exec.get(guild!!.id) !== null -> {
-                        respondEphemeral { content = "Подожди мой сладкий ;)" }
+                        respond { content = "Подожди мой сладкий ;)" }
                     }
                     else -> {
                         exec.put(guild!!.id, true)
 
                         val pidorObjRes: Pidor? = findExistingPidorOrNull(guildConfig)
-
-                        execute(pidorObjRes, guildConfig)
+                        try {
+                            execute(pidorObjRes, guildConfig)
+                        } catch (e: Exception) {
+                            kordLogger.error {
+                                e.message
+                            }
+                            respond {
+                                content = "Я что-то затупил, перезапусти розыгрыш"
+                            }
+                        }
 
                         exec.invalidate(guild!!.id)
                     }
@@ -139,13 +134,9 @@ class PidorCommand : Extension() {
     ) {
         when {
             pidorObjRes === null -> {
-                val members = guild!!.members.filter {
+                val pidor = guild!!.members.filter {
                     it.roleIds.contains(Snowflake(guildConfig.role!!))
-                }
-
-                val pidor = members.withIndex().first {
-                    it.index == (0 until members.count()).random()
-                }.value
+                }.toList().random()
 
                 createPidorForGuild(pidor, guildConfig)
 
@@ -153,13 +144,7 @@ class PidorCommand : Extension() {
             }
 
             else -> {
-                val members = guild!!.members
-                val count = members.count()
-                kordLogger.debug {
-                    count
-                }
-
-                val pidor = members.first { it.id.value.toLong() == pidorObjRes.user }
+                val pidor = guild!!.members.first { it.id.value.toLong() == pidorObjRes.user }
 
                 respond {
                     val res = messagesDto.responses.random().replace("#user", pidor.mention)

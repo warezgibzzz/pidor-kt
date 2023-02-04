@@ -104,7 +104,7 @@ class StatsCommand : Extension() {
                 pidors.forEach { row ->
                     field {
                         name = guild!!.members.first { Snowflake(row.first) == it.id }.displayName
-                        value = "`${row.second}`"
+                        value = "`${row.second}` раз"
                         inline = true
                     }
                 }
@@ -129,6 +129,7 @@ class StatsCommand : Extension() {
                     )
                 }
                 .orderBy(Pidors.user.count() to SortOrder.DESC)
+                .orderBy(Pidors.user to SortOrder.DESC)
                 .groupBy(Pidors.user)
                 .limit(MAX_LEADERS)
                 .map {
