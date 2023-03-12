@@ -17,6 +17,7 @@ import com.kotlindiscord.kord.extensions.types.respond
 import dev.kord.common.entity.Snowflake
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.datetime.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -102,8 +103,11 @@ class StatsCommand : Extension() {
                 this.description = description
 
                 pidors.forEach { row ->
+                    val member = guild!!.members.firstOrNull { Snowflake(row.first) == it.id }
+                    val memberName: String = member?.displayName ?: "Ушедший пидор"
+
                     field {
-                        name = guild!!.members.first { Snowflake(row.first) == it.id }.displayName
+                        name = memberName
                         value = "`${row.second}` раз"
                         inline = true
                     }
