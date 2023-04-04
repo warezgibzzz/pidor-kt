@@ -10,3 +10,8 @@ services:
     environment:
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_USER: "${DB_USER}"
+  bot:
+    image: ghcr.io/warezgibzzz/pidor-kt:main
+    restart: always
+    env_file:
+      - .env
