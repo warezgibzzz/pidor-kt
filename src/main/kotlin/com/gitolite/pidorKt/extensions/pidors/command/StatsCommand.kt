@@ -108,7 +108,7 @@ class StatsCommand : Extension() {
 
                     field {
                         name = memberName
-                        value = "`${row.second}` раз"
+                        value = "${row.second} раз"
                         inline = true
                     }
                 }
